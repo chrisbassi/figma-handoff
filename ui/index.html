@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>figma-handoff</title>
+<style>
+  :root {
+    --bg: #f6f6f7; --card: #ffffff; --fg: #18181b; --muted: #71717a; --line: #e4e4e7;
+    --accent: #4f46e5; --accent-fg: #ffffff; --danger: #dc2626; --warn: #b45309; --ok: #15803d;
+    --soft: #f4f4f5; --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0f12; --card: #18181c; --fg: #f4f4f5; --muted: #a1a1aa; --line: #2a2a30;
+      --accent: #818cf8; --accent-fg: #0f0f12; --danger: #f87171; --warn: #fbbf24; --ok: #4ade80;
+      --soft: #212127;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); padding-bottom: 120px; }
+  header { max-width: 1100px; margin: 0 auto; padding: 32px 24px 8px; }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  form.connect { display: grid; grid-template-columns: 2fr 2fr 1fr auto; gap: 12px; align-items: end; }
+  label.f { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  input[type=text], input[type=password], select {
+    font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 10px; width: 100%; min-width: 0;
+  }
+  input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 9px 14px; }
+  button:hover:not(:disabled) { background: var(--soft); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.08); background: var(--accent); }
+  .hint { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+  .error { margin-top: 12px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--danger); color: var(--danger); }
+  .note { padding: 10px 12px; border-radius: 8px; background: var(--soft); color: var(--muted); font-size: 14px; }
+  [hidden] { display: none !important; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .summary { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 12px; }
+  .summary h2 { margin: 0; font-size: 18px; }
+  .summary span { color: var(--muted); }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .tab { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 14px; color: var(--muted); }
+  .tab[aria-selected=true] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
+  .count { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px; background: var(--soft); font-size: 12px; margin-left: 4px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .toolbar input[type=text] { max-width: 280px; }
+  .toolbar .grow { flex: 1; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .comp { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .comp.off { opacity: .55; }
+  .pv { position: relative; display: block; width: 100%; height: 170px; padding: 0; border: 0; border-radius: 0; background: #fff; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .pv:hover:not(:disabled) { background: #fff; }
+  .pv iframe { position: absolute; border: 0; width: 1600px; height: 1200px; transform-origin: 0 0; pointer-events: none; background: transparent; }
+  .chk { position: absolute; top: 8px; left: 8px; z-index: 2; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 3px 5px; line-height: 0; }
+  .chk input { width: 16px; height: 16px; margin: 0; cursor: pointer; }
+  .meta { padding: 10px 12px; display: grid; gap: 2px; }
+  .meta strong { overflow-wrap: anywhere; }
+  .meta code { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+  .badge { justify-self: start; font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--warn); color: var(--warn); margin-top: 4px; }
+
+  .sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .sw { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--card); }
+  .sw i { display: block; height: 56px; border-bottom: 1px solid var(--line); }
+  .sw div { padding: 8px 10px; font-size: 12px; overflow-wrap: anywhere; }
+  .sw b { display: block; font-size: 13px; }
+  h3.sec { margin: 22px 0 10px; font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  h3.sec:first-child { margin-top: 0; }
+  .type-row { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .type-row small { display: block; color: var(--muted); font-size: 12px; }
+  .shadow-box { height: 64px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+  pre.code { margin: 0; padding: 14px; background: var(--soft); border-radius: 8px; overflow: auto; font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; max-height: 340px; white-space: pre; }
+  details summary { cursor: pointer; color: var(--muted); margin-top: 16px; }
+  ul.warn { margin: 0; padding-left: 20px; }
+  ul.warn li { margin: 6px 0; }
+
+  footer.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line); padding: 12px 24px; z-index: 5; }
+  .bar-in { max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+  .bar-in label.f { min-width: 130px; }
+  .bar-in .out { min-width: 170px; flex: 1; }
+  .bar-in label.inline { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); padding-bottom: 9px; }
+  .bar-in .sp { flex: 1; }
+  .bar-in .sel { padding-bottom: 9px; font-weight: 600; }
+  #result { max-width: 1100px; margin: 8px auto 0; font-size: 13px; }
+  #result .ok { color: var(--ok); font-weight: 600; }
+  #result code { color: var(--muted); }
+
+  dialog { width: min(920px, 94vw); max-height: 92vh; border: 1px solid var(--line); border-radius: var(--radius); padding: 0; background: var(--card); color: var(--fg); }
+  dialog::backdrop { background: rgba(0,0,0,.5); }
+  .dlg-head { display: flex; gap: 12px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .dlg-head h2 { margin: 0; font-size: 17px; flex: 1; overflow-wrap: anywhere; }
+  .dlg-head code { color: var(--muted); font-size: 12px; }
+  .dlg-body { padding: 18px; overflow: auto; max-height: calc(92vh - 62px); display: grid; gap: 14px; }
+  .stage-wrap { border: 1px solid var(--line); border-radius: 8px; overflow: auto; min-height: 120px; }
+  .stage-wrap.light { background: #fff; }
+  .stage-wrap.dark { background: #18181b; }
+  .stage-wrap.checker { background: conic-gradient(#e5e7eb 25%, #fff 0 50%, #e5e7eb 0 75%, #fff 0) 0 0 / 16px 16px; }
+  .stage-wrap iframe { border: 0; display: block; width: 100%; height: 160px; background: transparent; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row .grow { flex: 1; }
+
+  @media (max-width: 760px) {
+    form.connect { grid-template-columns: 1fr; }
+    header, main { padding-left: 14px; padding-right: 14px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>figma-handoff</h1>
+  <p>Carregue o arquivo do Figma, veja a prévia de cada componente e só então gere o código.</p>
+  <div id="demoBanner" class="note" style="margin-top:12px" hidden></div>
+</header>
+
+<main>
+  <section class="card">
+    <form id="form" class="connect">
+      <label class="f">URL ou chave do arquivo
+        <input id="fileKey" type="text" placeholder="https://www.figma.com/design/abc123/Meu-DS" autocomplete="off" required>
+      </label>
+      <label class="f">Token pessoal do Figma
+        <input id="token" type="password" placeholder="figd_..." autocomplete="off">
+      </label>
+      <label class="f">Prefixo
+        <input id="prefix" type="text" value="ds" autocomplete="off">
+      </label>
+      <button id="scanBtn" class="primary" type="submit">Carregar componentes</button>
+    </form>
+    <p class="hint" id="tokenHint">O token vai só para este servidor local (127.0.0.1) e não é salvo em lugar nenhum.</p>
+    <p class="hint" id="prefixHint" hidden>Você mudou o prefixo: carregue de novo para as classes CSS refletirem isso.</p>
+    <div id="error" class="error" role="alert" hidden></div>
+  </section>
+
+  <section id="results" hidden>
+    <div class="summary">
+      <h2 id="fileName"></h2>
+      <span id="stats"></span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-components" aria-selected="true" data-tab="components">Componentes <span class="count" id="cnt-components">0</span></button>
+      <button class="tab" role="tab" id="tab-tokens" aria-selected="false" data-tab="tokens">Tokens <span class="count" id="cnt-tokens">0</span></button>
+      <button class="tab" role="tab" id="tab-warnings" aria-selected="false" data-tab="warnings">Avisos <span class="count" id="cnt-warnings">0</span></button>
+    </div>
+
+    <div id="panel-components" role="tabpanel">
+      <div class="toolbar">
+        <input id="search" type="text" placeholder="Filtrar por nome..." aria-label="Filtrar componentes">
+        <button type="button" id="selAll">Marcar visíveis</button>
+        <button type="button" id="selNone">Desmarcar visíveis</button>
+        <span class="grow"></span>
+        <span class="hint" style="margin:0">Clique na prévia para ver o código</span>
+      </div>
+      <div id="grid" class="grid"></div>
+      <p id="empty" class="note" hidden>Nenhum componente encontrado. Os elementos precisam ser <b>Components</b> no Figma (Ctrl/Cmd + Alt + K).</p>
+    </div>
+
+    <div id="panel-tokens" role="tabpanel" hidden></div>
+    <div id="panel-warnings" role="tabpanel" hidden></div>
+  </section>
+</main>
+
+<footer class="bar" id="bar" hidden>
+  <div class="bar-in">
+    <div class="sel"><span id="selCount">0</span> selecionado(s)</div>
+    <label class="f">Formato
+      <select id="format">
+        <option value="html">HTML</option>
+        <option value="blade">Blade (Laravel)</option>
+        <option value="react">React (.tsx)</option>
+      </select>
+    </label>
+    <label class="f out">Pasta dos componentes
+      <input id="outDir" type="text" value="./src/components">
+    </label>
+    <label class="f out">Arquivo dos tokens
+      <input id="tokensOut" type="text" value="./src/css/tokens.css">
+    </label>
+    <label class="inline"><input type="checkbox" id="incTokens"> incluir tokens.css</label>
+    <label class="inline"><input type="checkbox" id="saveCfg"> salvar config</label>
+    <span class="sp"></span>
+    <button id="zipBtn" type="button">Baixar ZIP</button>
+    <button id="saveBtn" type="button" class="primary">Salvar no projeto</button>
+  </div>
+  <div id="result" aria-live="polite"></div>
+</footer>
+
+<dialog id="detail">
+  <div class="dlg-head">
+    <h2 id="dTitle"></h2>
+    <code id="dCls"></code>
+    <label class="row" style="gap:6px;font-size:13px;color:var(--muted)"><input type="checkbox" id="dSel"> incluir</label>
+    <button type="button" id="dClose" aria-label="Fechar">✕</button>
+  </div>
+  <div class="dlg-body">
+    <div class="row">
+      <span style="color:var(--muted);font-size:13px">Fundo:</span>
+      <button type="button" class="bgb" data-bg="light">Claro</button>
+      <button type="button" class="bgb" data-bg="dark">Escuro</button>
+      <button type="button" class="bgb" data-bg="checker">Xadrez</button>
+    </div>
+    <div class="stage-wrap light" id="dStage"><iframe sandbox="allow-same-origin" id="dFrame" title="Prévia do componente"></iframe></div>
+    <div id="dWarn" class="note" hidden></div>
+    <div class="tabs" role="tablist" id="dTabs">
+      <button class="tab" role="tab" aria-selected="true" data-code="html">HTML</button>
+      <button class="tab" role="tab" aria-selected="false" data-code="css">CSS</button>
+      <button class="tab" role="tab" aria-selected="false" data-code="react">React</button>
+      <button class="tab" role="tab" aria-selected="false" data-code="blade">Blade</button>
+    </div>
+    <div class="row"><span class="grow" id="dFileName" style="color:var(--muted);font-size:13px"></span><button type="button" id="dCopy">Copiar</button></div>
+    <pre class="code" id="dCode"></pre>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  let data = null;
+  let selected = new Set();
+  let scannedPrefix = "";
+  let current = null;   // componente aberto no detalhe
+  let codeTab = "html";
+
+  // Modo demonstração (GitHub Pages): o site define data-demo="./scan.json" no <html>.
+  // Nada vai para um servidor: a resposta do "scan" é um arquivo estático gerado pelo próprio pipeline.
+  const DEMO = document.documentElement.dataset.demo || "";
+  const SCAN_LABEL = DEMO ? "Carregar exemplo" : "Carregar componentes";
+
+  async function demoApi(path) {
+    const ok = (data) => ({ ok: true, json: async () => data });
+    if (path === "/api/state") {
+      return ok({ hasConfig: false, hasEnvToken: false, fileKey: "https://www.figma.com/design/EXEMPLO/Design-system-de-exemplo",
+        prefix: "ds", format: "html", componentsOutput: "./src/components", tokensOutput: "./src/css/tokens.css" });
+    }
+    if (path === "/api/scan") {
+      const res = await fetch(DEMO);
+      if (!res.ok) throw new Error("Não consegui carregar o arquivo de exemplo.");
+      return { ok: true, json: () => res.json() };
+    }
+    throw new Error("Na demonstração não dá para gravar nem baixar. Isso funciona na versão local.");
+  }
+
+  async function api(path, body) {
+    if (DEMO) return demoApi(path);
+    const res = await fetch(path, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : undefined);
+    if (!res.ok) {
+      let msg = res.statusText || "Erro";
+      try { msg = (await res.json()).error || msg; } catch (e) { /* sem corpo */ }
+      throw new Error(msg);
+    }
+    return res;
+  }
+
+  // ---------- estado inicial ----------
+  api("/api/state").then((r) => r.json()).then((s) => {
+    if (s.fileKey) $("#fileKey").value = s.fileKey;
+    $("#prefix").value = s.prefix;
+    $("#format").value = s.format;
+    $("#outDir").value = s.componentsOutput;
+    $("#tokensOut").value = s.tokensOutput;
+    $("#saveCfg").checked = !s.hasConfig;
+    if (s.hasEnvToken) {
+      $("#token").placeholder = "usando FIGMA_TOKEN do .env (opcional)";
+      $("#tokenHint").textContent = "Token do .env detectado. Preencha só se quiser usar outro. Ele nunca sai desta máquina.";
+    }
+  }).catch(() => {});
+
+  if (DEMO) {
+    const banner = $("#demoBanner");
+    banner.innerHTML = 'Demonstração com um arquivo de exemplo. Gravar no projeto e baixar o ZIP só funcionam na versão local. <a href="../#instalar">Como instalar</a>';
+    banner.hidden = false;
+    $("#token").disabled = true;
+    $("#token").placeholder = "não é necessário na demonstração";
+    $("#tokenHint").textContent = "Nenhum dado sai do seu navegador.";
+    $("#scanBtn").textContent = SCAN_LABEL;
+    $("#saveBtn").title = "Disponível na versão local";
+    $("#zipBtn").title = "Disponível na versão local";
+  }
+
+  // ---------- carregar ----------
+  $("#form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const btn = $("#scanBtn");
+    const err = $("#error");
+    err.hidden = true;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Lendo o arquivo...';
+    try {
+      const res = await api("/api/scan", { fileKey: $("#fileKey").value, token: $("#token").value, prefix: $("#prefix").value });
+      data = await res.json();
+      scannedPrefix = $("#prefix").value;
+      $("#prefixHint").hidden = true;
+      selected = new Set(data.components.map((c) => c.slug));
+      renderAll();
+    } catch (e) {
+      err.textContent = e.message;
+      err.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = SCAN_LABEL;
+    }
+  });
+
+  $("#prefix").addEventListener("input", () => {
+    $("#prefixHint").hidden = !data || $("#prefix").value === scannedPrefix;
+  });
+
+  // ---------- render ----------
+  function renderAll() {
+    $("#results").hidden = false;
+    $("#bar").hidden = false;
+    $("#fileName").textContent = data.fileName || "Arquivo do Figma";
+    const nW = data.warnings.length;
+    $("#stats").textContent = data.components.length + " componente(s) · " + data.tokens.length + " token(s) · " + nW + " aviso(s)";
+    $("#cnt-components").textContent = data.components.length;
+    $("#cnt-tokens").textContent = data.tokens.length;
+    $("#cnt-warnings").textContent = nW;
+    $("#incTokens").checked = data.tokens.length > 0;
+    $("#incTokens").disabled = data.tokens.length === 0;
+    renderGrid();
+    renderTokens();
+    renderWarnings();
+    updateCount();
+    showTab("components");
+  }
+
+  function srcdoc(c) {
+    return '<!doctype html><meta charset="utf-8"><style>html,body{margin:0}body{font-family:system-ui,sans-serif}#stage{display:inline-block;padding:16px}' +
+      c.css + '</style><div id="stage">' + c.html + "</div>";
+  }
+
+  function fit(iframe, box) {
+    const doc = iframe.contentDocument;
+    const stage = doc && doc.getElementById("stage");
+    if (!stage) return;
+    const w = stage.offsetWidth, h = stage.offsetHeight;
+    if (!w || !h) return;
+    const bw = box.clientWidth, bh = box.clientHeight;
+    const s = Math.min(1, bw / w, bh / h);
+    iframe.style.width = w + "px";
+    iframe.style.height = h + "px";
+    iframe.style.transform = "scale(" + s + ")";
+    iframe.style.left = (bw - w * s) / 2 + "px";
+    iframe.style.top = (bh - h * s) / 2 + "px";
+  }
+
+  function renderGrid() {
+    const grid = $("#grid");
+    grid.innerHTML = "";
+    $("#empty").hidden = data.components.length > 0;
+    for (const c of data.components) {
+      const el = document.createElement("article");
+      el.className = "comp" + (selected.has(c.slug) ? "" : " off");
+      el.dataset.slug = c.slug;
+      el.dataset.name = (c.name + " " + c.cls).toLowerCase();
+      el.innerHTML =
+        '<label class="chk"><input type="checkbox" aria-label="Incluir ' + esc(c.name) + '"' + (selected.has(c.slug) ? " checked" : "") + "></label>" +
+        '<button type="button" class="pv" aria-label="Ver código de ' + esc(c.name) + '"><iframe sandbox="allow-same-origin" tabindex="-1" title="Prévia de ' + esc(c.name) + '"></iframe></button>' +
+        '<div class="meta"><strong>' + esc(c.name) + "</strong><code>." + esc(c.cls) + "</code>" +
+        (c.warnings.length ? '<span class="badge">' + c.warnings.length + " aviso(s)</span>" : "") + "</div>";
+      const pv = $(".pv", el), frame = $("iframe", el);
+      frame.addEventListener("load", () => fit(frame, pv));
+      frame.srcdoc = srcdoc(c);
+      pv.addEventListener("click", () => openDetail(c));
+      $("input", el).addEventListener("change", (e) => toggle(c.slug, e.target.checked));
+      grid.appendChild(el);
+    }
+  }
+
+  function toggle(slug, on) {
+    if (on) selected.add(slug); else selected.delete(slug);
+    const card = $('.comp[data-slug="' + slug + '"]');
+    if (card) {
+      card.classList.toggle("off", !on);
+      $("input", card).checked = on;
+    }
+    updateCount();
+  }
+
+  function updateCount() {
+    $("#selCount").textContent = selected.size;
+    const none = selected.size === 0 && !($("#incTokens").checked && data && data.tokens.length);
+    $("#saveBtn").disabled = none || !!DEMO;
+    $("#zipBtn").disabled = none || !!DEMO;
+  }
+  $("#incTokens").addEventListener("change", updateCount);
+
+  $("#search").addEventListener("input", () => {
+    const q = $("#search").value.trim().toLowerCase();
+    $$(".comp").forEach((c) => { c.hidden = q && !c.dataset.name.includes(q); });
+  });
+  function setVisible(on) {
+    $$(".comp").forEach((c) => { if (!c.hidden) toggle(c.dataset.slug, on); });
+  }
+  $("#selAll").addEventListener("click", () => setVisible(true));
+  $("#selNone").addEventListener("click", () => setVisible(false));
+
+  // ---------- abas ----------
+  function showTab(name) {
+    for (const t of ["components", "tokens", "warnings"]) {
+      $("#panel-" + t).hidden = t !== name;
+      $("#tab-" + t).setAttribute("aria-selected", String(t === name));
+    }
+  }
+  $$(".tabs .tab[data-tab]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+  // ---------- tokens ----------
+  function renderTokens() {
+    const p = $("#panel-tokens");
+    if (!data.tokens.length) {
+      p.innerHTML = '<div class="note">' + esc(data.tokensNote || "Nenhum token encontrado.") +
+        "<br><br>Tokens vêm dos <b>estilos publicados na biblioteca</b> do arquivo (recurso de plano pago do Figma). " +
+        "Os componentes não dependem disso: já saem com a cor, a fonte e a sombra literais.</div>";
+      return;
+    }
+    const colors = data.tokens.filter((t) => t.group === "color");
+    const shadows = data.tokens.filter((t) => t.group === "shadow");
+    const texts = {};
+    for (const t of data.tokens.filter((t) => t.group === "text")) {
+      const m = t.name.match(/^(.*)-(family|size|weight|line-height|letter-spacing)$/);
+      if (m) (texts[m[1]] = texts[m[1]] || {})[m[2]] = t.value;
+    }
+    let html = "";
+    if (colors.length) {
+      html += '<h3 class="sec">Cores</h3><div class="sw-grid">' +
+        colors.map((t) => '<div class="sw"><i style="background:' + esc(t.value) + '"></i><div><b>--' + esc(t.name) + "</b>" + esc(t.value) + "</div></div>").join("") + "</div>";
+    }
+    const names = Object.keys(texts);
+    if (names.length) {
+      html += '<h3 class="sec">Tipografia</h3>' + names.map((n) => {
+        const t = texts[n];
+        const style = "font-family:" + (t.family || "inherit") + ";font-size:" + (t.size || "1rem") + ";font-weight:" + (t.weight || 400) +
+          ";line-height:" + (t["line-height"] || "normal") + ";letter-spacing:" + (t["letter-spacing"] || "normal");
+        return '<div class="type-row"><div style="' + esc(style) + '">Aa Texto de exemplo</div><small>--' + esc(n) + " · " +
+          esc([t.family, t.size, t.weight].filter(Boolean).join(" · ")) + "</small></div>";
+      }).join("");
+    }
+    if (shadows.length) {
+      html += '<h3 class="sec">Sombras</h3><div class="sw-grid">' +
+        shadows.map((t) => '<div class="sw" style="border:0;background:none"><div class="shadow-box" style="box-shadow:' + esc(t.value) + '"></div><div><b>--' + esc(t.name) + "</b></div></div>").join("") + "</div>";
+    }
+    html += "<details><summary>Ver tokens.css</summary><pre class=\"code\">" + esc(data.tokensCss) + "</pre></details>";
+    p.innerHTML = html;
+  }
+
+  // ---------- avisos ----------
+  function renderWarnings() {
+    const all = data.warnings.concat((data.tokensWarnings || []).map((w) => "Tokens: " + w));
+    $("#cnt-warnings").textContent = all.length;
+    $("#panel-warnings").innerHTML = all.length
+      ? '<ul class="warn">' + all.map((w) => "<li>" + esc(w) + "</li>").join("") + "</ul>"
+      : '<div class="note">Nenhum aviso. Tudo foi convertido.</div>';
+  }
+
+  // ---------- detalhe ----------
+  const dlg = $("#detail");
+  function openDetail(c) {
+    current = c;
+    $("#dTitle").textContent = c.name;
+    $("#dCls").textContent = "." + c.cls;
+    $("#dSel").checked = selected.has(c.slug);
+    const frame = $("#dFrame");
+    frame.style.height = "160px";
+    frame.onload = () => {
+      const stage = frame.contentDocument && frame.contentDocument.getElementById("stage");
+      if (stage && stage.offsetHeight) frame.style.height = Math.min(Math.max(stage.offsetHeight + 4, 120), window.innerHeight * 0.5) + "px";
+    };
+    frame.srcdoc = srcdoc(c);
+    const w = $("#dWarn");
+    w.hidden = !c.warnings.length;
+    w.innerHTML = c.warnings.length ? "<b>Avisos:</b><ul class=\"warn\">" + c.warnings.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "";
+    setBg("light");
+    setCode(codeTab);
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  }
+  function setBg(bg) { $("#dStage").className = "stage-wrap " + bg; }
+  $$(".bgb").forEach((b) => b.addEventListener("click", () => setBg(b.dataset.bg)));
+
+  function setCode(tab) {
+    codeTab = tab;
+    $$("#dTabs .tab").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.code === tab)));
+    if (!current) return;
+    const names = { html: current.slug + ".html", css: current.slug + ".css", react: current.reactFile, blade: current.slug + ".blade.php" };
+    $("#dFileName").textContent = names[tab];
+    $("#dCode").textContent = current[tab];
+  }
+  $$("#dTabs .tab").forEach((b) => b.addEventListener("click", () => setCode(b.dataset.code)));
+
+  $("#dCopy").addEventListener("click", async () => {
+    const text = $("#dCode").textContent;
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e2) { /* sem permissão */ }
+      ta.remove();
+    }
+    const b = $("#dCopy"); b.textContent = "Copiado ✔";
+    setTimeout(() => { b.textContent = "Copiar"; }, 1400);
+  });
+  $("#dSel").addEventListener("change", (e) => { if (current) toggle(current.slug, e.target.checked); });
+  $("#dClose").addEventListener("click", () => dlg.close ? dlg.close() : dlg.removeAttribute("open"));
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+
+  // ---------- gerar ----------
+  function payload(mode) {
+    return {
+      mode,
+      slugs: Array.from(selected),
+      format: $("#format").value,
+      output: $("#outDir").value,
+      tokensOutput: $("#tokensOut").value,
+      includeTokens: $("#incTokens").checked,
+      saveConfig: $("#saveCfg").checked,
+    };
+  }
+  function busy(on) {
+    $("#saveBtn").disabled = on; $("#zipBtn").disabled = on;
+    if (!on) updateCount();
+  }
+  function showResult(html) { $("#result").innerHTML = html; }
+
+  $("#saveBtn").addEventListener("click", async () => {
+    busy(true);
+    try {
+      const r = await (await api("/api/generate", payload("disk"))).json();
+      showResult('<span class="ok">✔ ' + r.files.length + " arquivo(s) gravado(s)" + (r.configSaved ? " · config salva" : "") + "</span> " +
+        r.files.slice(0, 6).map((f) => "<code>" + esc(f) + "</code>").join(" ") + (r.files.length > 6 ? " <code>+" + (r.files.length - 6) + "</code>" : ""));
+    } catch (e) {
+      showResult('<span style="color:var(--danger)">✖ ' + esc(e.message) + "</span>");
+    } finally { busy(false); }
+  });
+
+  $("#zipBtn").addEventListener("click", async () => {
+    busy(true);
+    try {
+      const blob = await (await api("/api/generate", payload("zip"))).blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "figma-components.zip";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      showResult('<span class="ok">✔ ZIP gerado</span>');
+    } catch (e) {
+      showResult('<span style="color:var(--danger)">✖ ' + esc(e.message) + "</span>");
+    } finally { busy(false); }
+  });
+})();
+</script>
+</body>
+</html>

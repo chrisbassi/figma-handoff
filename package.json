@@ -1,0 +1,57 @@
+{
+  "name": "figma-handoff",
+  "version": "0.4.0",
+  "description": "Do Figma ao código: lista os componentes com prévia, gera CSS próprio + HTML, Blade ou React e extrai tokens. Roda local e funciona no plano grátis.",
+  "type": "module",
+  "bin": {
+    "figma-handoff": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "ui",
+    "README.md",
+    "LICENSE",
+    "!dist/**/*.test.js"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/postbuild.mjs",
+    "dev": "tsc --watch",
+    "ui": "npm run build && node dist/cli.js ui",
+    "test": "npm run build && node --test dist/*.test.js",
+    "prepublishOnly": "npm test",
+    "build:site": "npm run build && node scripts/build-site.mjs"
+  },
+  "keywords": [
+    "figma",
+    "design-to-code",
+    "design-tokens",
+    "css",
+    "css-variables",
+    "html",
+    "react",
+    "laravel-blade",
+    "handoff",
+    "design-system",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  },
+  "author": "Chris Bassi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seu-usuario-do-github/figma-handoff.git"
+  },
+  "homepage": "https://seu-usuario-do-github.github.io/figma-handoff/",
+  "bugs": {
+    "url": "https://github.com/seu-usuario-do-github/figma-handoff/issues"
+  }
+}

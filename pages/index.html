@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__NAME__: do Figma ao CSS e ao HTML</title>
+<meta name="description" content="Carregue um arquivo do Figma, veja a prévia de cada componente e gere CSS próprio e HTML, Blade ou React. Roda na sua máquina e funciona no plano grátis.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234B3FD6'/%3E%3Cpath d='M9 10h8a5 5 0 010 10H9zM15 20h8' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;display=swap">
+<style>
+  :root {
+    --paper: #F6F7F9; --surface: #FFFFFF; --canvas: #E7E4FB;
+    --ink: #161A2E; --ink-2: #4A5068; --line: #D8DBE6;
+    --accent: #4B3FD6; --accent-ink: #FFFFFF;
+    --code-bg: #12172B; --code-fg: #E6E9F5; --code-dim: #8E96B8;
+    --sans: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E1120; --surface: #151933; --canvas: #1E1B47;
+      --ink: #EEF0F8; --ink-2: #A5ACC6; --line: #2A2F4A;
+      --accent: #9A91FF; --accent-ink: #0E1120;
+      --code-bg: #0A0D1A; --code-fg: #E6E9F5; --code-dim: #7C85A8;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 var(--sans); font-optical-sizing: auto; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible, .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  code, pre { font-family: var(--mono); }
+  .wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+
+  /* topo */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0; }
+  .brand { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; }
+  .top nav { display: flex; gap: 22px; font-size: 15px; }
+  .top nav a { color: var(--ink-2); text-decoration: none; }
+  .top nav a:hover { color: var(--ink); text-decoration: underline; }
+
+  /* herói */
+  .hero { padding: 40px 0 28px; }
+  h1 { margin: 0; max-width: 17ch; font-size: clamp(38px, 6.4vw, 72px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 700; font-variation-settings: "wdth" 90; }
+  .lead { max-width: 56ch; margin: 22px 0 0; font-size: 19px; color: var(--ink-2); }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .btn { display: inline-block; padding: 13px 22px; border-radius: 10px; font: 600 16px/1 var(--sans); text-decoration: none; border: 1.5px solid var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .btn.ghost { color: var(--accent); background: transparent; }
+  .btn:hover { filter: brightness(1.1); }
+
+  /* o handoff: design à esquerda, código à direita */
+  .handoff { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); margin-top: 44px; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); }
+  .design { background: var(--canvas); display: grid; place-items: center; padding: 48px 24px; min-height: 420px; }
+  .design .stage { max-width: 100%; }
+  .code { background: var(--code-bg); color: var(--code-fg); min-width: 0; display: flex; flex-direction: column; max-height: 520px; }
+  .code .file { padding: 12px 20px; font: 13px/1 var(--mono); color: var(--code-dim); border-bottom: 1px solid rgba(255,255,255,.08); }
+  .code pre { margin: 0; padding: 16px 20px 20px; font-size: 13px; line-height: 1.6; overflow: auto; white-space: pre; tab-size: 2; }
+  .code .scroll { overflow: auto; }
+  .caption { margin: 14px 0 0; font-size: 14px; color: var(--ink-2); max-width: 70ch; }
+
+  /* seções */
+  section.block { padding: 72px 0 8px; }
+  h2 { margin: 0 0 20px; font-size: clamp(26px, 3.4vw, 38px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 700; max-width: 22ch; }
+  .prose { max-width: 62ch; color: var(--ink-2); }
+  .prose p { margin: 0 0 14px; }
+  .prose strong { color: var(--ink); }
+
+  ol.steps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 28px; max-width: 760px; }
+  ol.steps li { display: grid; grid-template-columns: 64px 1fr; gap: 8px 16px; align-items: baseline; }
+  ol.steps .n { font-size: 52px; line-height: .9; font-weight: 700; letter-spacing: -0.04em; color: var(--accent); }
+  ol.steps h3 { margin: 0 0 4px; font-size: 21px; letter-spacing: -0.015em; }
+  ol.steps p { margin: 0; color: var(--ink-2); max-width: 56ch; }
+
+  .term { background: var(--code-bg); color: var(--code-fg); border-radius: 14px; padding: 20px 22px; font-size: 14.5px; line-height: 1.8; overflow: auto; max-width: 720px; margin: 16px 0 0; }
+  .term .c { color: var(--code-dim); }
+  dl.cmds { display: grid; grid-template-columns: max-content 1fr; gap: 10px 22px; margin: 22px 0 0; max-width: 720px; }
+  dl.cmds dt { font: 600 14.5px/1.5 var(--mono); }
+  dl.cmds dd { margin: 0; color: var(--ink-2); }
+
+  ul.limits { margin: 0; padding-left: 20px; max-width: 64ch; color: var(--ink-2); }
+  ul.limits li { margin: 0 0 10px; }
+  ul.limits strong { color: var(--ink); }
+
+  footer { margin-top: 88px; padding: 28px 0 56px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 15px; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+  @media (max-width: 820px) {
+    .handoff { grid-template-columns: 1fr; }
+    .design { min-height: 0; padding: 32px 16px; }
+    .code { max-height: 420px; }
+    ol.steps li { grid-template-columns: 48px 1fr; }
+    ol.steps .n { font-size: 40px; }
+    dl.cmds { grid-template-columns: 1fr; gap: 2px; }
+    dl.cmds dd { margin-bottom: 12px; }
+  }
+</style>
+<style id="generated-preview">
+__PREVIEW_CSS__
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="./">__NAME__</a>
+    <nav aria-label="Principal">
+      <a href="./demo/">Demonstração</a>
+      <a href="#instalar">Instalar</a>
+      <a href="__REPO_URL__">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Cada componente do Figma, já em CSS e HTML</h1>
+      <p class="lead">Carregue o arquivo, confira a prévia de cada componente e gere um CSS próprio mais o HTML, o Blade ou o React. Roda na sua máquina e funciona no plano grátis do Figma.</p>
+      <div class="actions">
+        <a class="btn primary" href="./demo/">Abrir a demonstração</a>
+        <a class="btn ghost" href="__REPO_URL__">Ver o código no GitHub</a>
+      </div>
+
+      <div class="handoff" role="group" aria-label="Componente Card e o código gerado para ele">
+        <div class="design"><div class="stage">__PREVIEW_HTML__</div></div>
+        <div class="code">
+          <div class="file">card.html</div>
+          <div class="scroll"><pre><code>__CODE_HTML__</code></pre></div>
+          <div class="file">card.css</div>
+          <div class="scroll"><pre><code>__CODE_CSS__</code></pre></div>
+        </div>
+      </div>
+      <p class="caption">O componente Card à esquerda e o código à direita saem do __NAME__, a partir de um arquivo Figma de exemplo. Nada nesta área foi escrito à mão.</p>
+    </div>
+
+    <section class="block" id="como-funciona">
+      <h2>Como funciona</h2>
+      <ol class="steps">
+        <li>
+          <span class="n" aria-hidden="true">1</span>
+          <div><h3>Carregue o arquivo</h3><p>Cole a URL do arquivo e o seu token pessoal do Figma. A ferramenta lê o arquivo inteiro, então não precisa publicar biblioteca nenhuma.</p></div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">2</span>
+          <div><h3>Confira a prévia</h3><p>Cada componente aparece renderizado antes de qualquer arquivo ser gerado, com a lista do que não foi convertido. Marque só os que você quer.</p></div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">3</span>
+          <div><h3>Gere o código</h3><p>Escolha HTML, Blade ou React. Sai um CSS por componente, mais um preview.html com todos. Grave na pasta do projeto ou baixe um ZIP.</p></div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="block">
+      <h2>O que sai do arquivo de design</h2>
+      <div class="prose">
+        <p><strong>Auto-layout vira flexbox:</strong> direção, espaçamento, padding, alinhamento e quebra de linha. Camadas fora de auto-layout ficam em posição absoluta.</p>
+        <p><strong>Cores, tipografia e sombras</strong> que vêm de estilos do Figma viram variáveis CSS com o valor literal de reserva, então o componente funciona até sem o arquivo de tokens.</p>
+        <p><strong>Os nomes das camadas viram classes</strong> no padrão BEM, como <code>.ds-card__title</code>. Camadas chamadas "Frame 12" geram classes chamadas <code>frame-12</code>, então vale nomear direito no Figma.</p>
+      </div>
+    </section>
+
+    <section class="block" id="instalar">
+      <h2>Instalar e rodar</h2>
+      <div class="prose"><p>Precisa de Node.js 20 ou superior e de um token pessoal do Figma com permissão de leitura de arquivos (em Settings, Security, Personal access tokens).</p></div>
+<pre class="term"><code><span class="c"># clonar e abrir a interface em http://127.0.0.1:4173</span>
+git clone https://github.com/__REPO_SLUG__.git
+cd __NAME__
+npm install
+npm run ui</code></pre>
+      <dl class="cmds">
+        <dt>npm run ui</dt><dd>Abre a interface: lista os componentes com prévia e gera o código.</dd>
+        <dt>node dist/cli.js components</dt><dd>Gera os componentes pela linha de comando, sem a interface.</dd>
+        <dt>node dist/cli.js sync</dt><dd>Gera o tokens.css a partir dos estilos publicados do arquivo.</dd>
+        <dt>node dist/cli.js diff</dt><dd>Mostra o que mudou no Figma desde o último sync.</dd>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h2>O que ainda não faz</h2>
+      <ul class="limits">
+        <li><strong>Ícones e vetores</strong> viram um espaço reservado do tamanho certo, com aviso. Exportar SVG é o próximo passo.</li>
+        <li><strong>O texto sai fixo</strong>, igual ao do design, sem props. Instâncias e overrides não são interpretados.</li>
+        <li><strong>Os tokens dependem de estilos publicados</strong> na biblioteca do arquivo, e publicar é recurso de plano pago do Figma. Os componentes não dependem disso.</li>
+        <li><strong>Layout sem auto-layout</strong> reproduz o design em posição absoluta, então não é responsivo.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <span>__NAME__ __VERSION__, licença MIT.</span>
+    <span><a href="./demo/">Demonstração</a> &nbsp; <a href="__REPO_URL__">Repositório</a> &nbsp; <a href="__REPO_URL__/issues">Problemas e ideias</a></span>
+  </footer>
+</div>
+</body>
+</html>
