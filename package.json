@@ -48,10 +48,10 @@
   "author": "Chris Bassi",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seu-usuario-do-github/figma-handoff.git"
+    "url": "git+https://github.com/chrisbassi/figma-handoff.git"
   },
-  "homepage": "https://seu-usuario-do-github.github.io/figma-handoff/",
+  "homepage": "https://chrisbassi.github.io/figma-handoff/",
   "bugs": {
-    "url": "https://github.com/seu-usuario-do-github/figma-handoff/issues"
+    "url": "https://github.com/chrisbassi/figma-handoff/issues"
   }
 }

@@ -72,7 +72,7 @@ if (!ui_html.includes('<html lang="pt-BR">')) fail("ui/index.html mudou: não ac
 writeFileSync(join(out, "demo/index.html"), ui_html.replace('<html lang="pt-BR">', '<html lang="pt-BR" data-demo="./scan.json">'));
 
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-const slug = process.env.GITHUB_REPOSITORY || `seu-usuario-do-github/${pkg.name}`;
+const slug = process.env.GITHUB_REPOSITORY || `chrisbassi/${pkg.name}`;
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const fill = {
   __REPO_SLUG__: slug,

@@ -1,12 +1,12 @@
 # figma-handoff
 
-[![CI](https://github.com/seu-usuario-do-github/figma-handoff/actions/workflows/ci.yml/badge.svg)](https://github.com/seu-usuario-do-github/figma-handoff/actions/workflows/ci.yml)
+[![CI](https://github.com/chrisbassi/figma-handoff/actions/workflows/ci.yml/badge.svg)](https://github.com/chrisbassi/figma-handoff/actions/workflows/ci.yml)
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
 ![Node 20+](https://img.shields.io/badge/node-20%2B-339933)
 
 Do Figma ao código. Carrega um arquivo do Figma, mostra a prévia de cada componente e gera um CSS próprio mais o HTML, o Blade ou o React. Também extrai cores, tipografia e sombras como variáveis CSS.
 
-**[Ver a demonstração](https://seu-usuario-do-github.github.io/figma-handoff/demo/)** (arquivo de exemplo, roda no navegador, não precisa de token)
+**[Ver a demonstração](https://chrisbassi.github.io/figma-handoff/demo/)** (arquivo de exemplo, roda no navegador, não precisa de token)
 
 - **Lista os componentes antes de gerar qualquer coisa**, com prévia renderizada e a lista do que não foi convertido.
 - **Funciona no plano grátis do Figma.** Lê o arquivo direto, sem exigir biblioteca publicada.
@@ -19,7 +19,7 @@ Do Figma ao código. Carrega um arquivo do Figma, mostra a prévia de cada compo
 Precisa de Node.js 20 ou superior e de um [token pessoal do Figma](https://www.figma.com/developers/api#access-tokens) com permissão de leitura de arquivos (Settings, Security, Personal access tokens).
 
 ```bash
-git clone https://github.com/seu-usuario-do-github/figma-handoff.git
+git clone https://github.com/chrisbassi/figma-handoff.git
 cd figma-handoff
 npm install
 npm run ui
